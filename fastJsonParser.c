@@ -44,9 +44,9 @@ void json_parser_init() {
 }
 
 fast_json_parser json_parse() {
-
+uint8_t data;
 	if (memptr < EndAddr) {
-		uint8_t data = *memptr;
+		data = *memptr;
 
 		switch (data) {
 
@@ -58,7 +58,7 @@ fast_json_parser json_parse() {
 				jsonParser.Start = memptr;
 				memptr++;
 
-				while (memptr != EndAddr) {
+				while (memptr != EndAddr+1) {
 					if (*memptr == '{')
 						levelCounter++; /*increment the levelCounter on occurrence of Object. The more the value of levelCounter the more the deep
 						 in json tree we are. Its 0 value indicates we are at root*/
@@ -90,7 +90,7 @@ fast_json_parser json_parse() {
 					if (*memptr == '{')
 						levelCounter++; /*increment the levelCounter on occurrence of Object. The more the value of levelCounter the more the deep
 						 in json tree we are. Its 0 value indicates we are at root*/
-					else if (*memptr == '}' && levelCounter != inlevelcntr)
+					else if ((*memptr == '}' || *memptr == ']') && levelCounter != inlevelcntr)
 						levelCounter--;
 					/*if the current level is same as the old level or we are out of the object started then break the loop*/
 					else if (levelCounter == inlevelcntr)
@@ -120,12 +120,20 @@ fast_json_parser json_parse() {
 			inlevelcntr = levelCounter - 1;
 
 			/*Increment the memptr till the end of array list*/
-			while (*memptr != ']') {
+			while (memptr < microcDBEndAddr) {
+				if (*memptr == '{' || *memptr == '[')
+					levelCounter++; /*increment the levelCounter on occurrence of Object. The more the value of levelCounter the more the deep
+					 in json tree we are. Its 0 value indicates we are at root*/
+				else if ((*memptr == '}' || *memptr == ']')
+						&& levelCounter != inlevelcntr)
+					levelCounter--;
+				/*if the current level is same as the old level or we are out of the object started then break the loop*/
+				else if (levelCounter == inlevelcntr)
+					break;
 				memptr++;
-			}
-			;
+			};
 
-			jsonParser.End = memptr;/*Assign the end of array list*/
+			jsonParser.End = memptr -1;/*Assign the end of array list*/
 			memptr = inptr;/*Reinitialize the memptr to the starting address data in arrayList So that data in that can be seen in next loop*/
 			break;
 
@@ -201,10 +209,10 @@ fast_json_parser json_parse() {
 		case '8':
 		case '9':
 
-			jsonParser.parsed_type = JSON_NUM;
+			jsonParser.parsed_type = JSON_PRIMITIVE;
 			jsonParser.Start = memptr;
 
-			while (*memptr != ',')
+			while ((*memptr != ',') && (memptr< EndAddr))
 				memptr++;
 
 			jsonParser.End = memptr - 1;
