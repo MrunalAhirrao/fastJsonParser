@@ -120,7 +120,7 @@ uint8_t data;
 			inlevelcntr = levelCounter - 1;
 
 			/*Increment the memptr till the end of array list*/
-			while (memptr < microcDBEndAddr) {
+			while (memptr < EndAddr) {
 				if (*memptr == '{' || *memptr == '[')
 					levelCounter++; /*increment the levelCounter on occurrence of Object. The more the value of levelCounter the more the deep
 					 in json tree we are. Its 0 value indicates we are at root*/
@@ -131,7 +131,8 @@ uint8_t data;
 				else if (levelCounter == inlevelcntr)
 					break;
 				memptr++;
-			};
+			}
+			;
 
 			jsonParser.End = memptr -1;/*Assign the end of array list*/
 			memptr = inptr;/*Reinitialize the memptr to the starting address data in arrayList So that data in that can be seen in next loop*/
