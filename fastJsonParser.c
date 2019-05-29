@@ -236,8 +236,18 @@ fast_json_parser json_parse() {
 			memptr++;
 
 			break;
+		case '}': // increment the memptr as whenever this case comes the JSON string is about to end
+			memptr++;
+			break;
+		case ']': // increment the memptr as whenever this case comes the JSON string is about to end
+			memptr++;
+			break;
+
+		default:
+			jsonParser.parsed_type = JSON_UNDEFINED;
 
 		};
+		
 
 	} else {
 		jsonParser.parsed_type = JSON_END;
