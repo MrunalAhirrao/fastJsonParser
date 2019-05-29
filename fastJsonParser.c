@@ -238,9 +238,13 @@ fast_json_parser json_parse() {
 			break;
 		case '}': // increment the memptr as whenever this case comes the JSON string is about to end
 			memptr++;
+			jsonParser.parsed_type = JSON_UNDEFINED;
+
 			break;
 		case ']': // increment the memptr as whenever this case comes the JSON string is about to end
 			memptr++;
+			jsonParser.parsed_type = JSON_UNDEFINED;
+			
 			break;
 
 		default:
@@ -250,6 +254,8 @@ fast_json_parser json_parse() {
 		
 
 	} else {
+		jsonParser.Start = memptr-1;
+		jsonParser.End = memptr;
 		jsonParser.parsed_type = JSON_END;
 		return jsonParser;
 	}
