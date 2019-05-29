@@ -29,8 +29,8 @@ uint8_t firstTime = 0;
 
 fast_json_parser jsonParser;
 
-uint8_t *StartAddr;
-uint8_t *EndAddr;
+uint8_t *StartAddr, *inStartAddr;
+uint8_t *EndAddr, *inEndAddr;
 uint8_t *memptr, *inptr;
 
 void json_parser_init() {
@@ -44,7 +44,7 @@ void json_parser_init() {
 }
 
 fast_json_parser json_parse() {
-uint8_t data;
+	uint8_t data;
 	if (memptr < EndAddr) {
 		data = *memptr;
 
@@ -58,15 +58,16 @@ uint8_t data;
 				jsonParser.Start = memptr;
 				memptr++;
 
-				while (memptr != EndAddr+1) {
-					if (*memptr == '{')
+				while (memptr != EndAddr) {
+					if (*memptr == '{' || *memptr == '[')
 						levelCounter++; /*increment the levelCounter on occurrence of Object. The more the value of levelCounter the more the deep
 						 in json tree we are. Its 0 value indicates we are at root*/
-					else if (*memptr == '}' && levelCounter != -1)
+					else if ((*memptr == '}' || *memptr == ']')
+							&& levelCounter != -1)
 						levelCounter--;
 					memptr++;
 				};
-				EndAddr = memptr;
+				EndAddr = memptr - 1;
 
 				memptr--;
 
@@ -74,6 +75,8 @@ uint8_t data;
 
 				jsonParser.parsed_type = JSON_OBJ;
 				jsonParser.End = memptr;
+				inStartAddr = jsonParser.Start;
+				inEndAddr = jsonParser.End;
 				memptr = StartAddr;
 				memptr++;
 
@@ -87,10 +90,11 @@ uint8_t data;
 				memptr++;
 
 				while (memptr < EndAddr) {
-					if (*memptr == '{')
+					if (*memptr == '{' || *memptr == '[')
 						levelCounter++; /*increment the levelCounter on occurrence of Object. The more the value of levelCounter the more the deep
 						 in json tree we are. Its 0 value indicates we are at root*/
-					else if ((*memptr == '}' || *memptr == ']') && levelCounter != inlevelcntr)
+					else if ((*memptr == '}' || *memptr == ']')
+							&& levelCounter != inlevelcntr)
 						levelCounter--;
 					/*if the current level is same as the old level or we are out of the object started then break the loop*/
 					else if (levelCounter == inlevelcntr)
@@ -100,6 +104,8 @@ uint8_t data;
 
 				jsonParser.parsed_type = JSON_OBJ;
 				jsonParser.End = memptr - 1;
+				inStartAddr = jsonParser.Start;
+				inEndAddr = jsonParser.End;
 				memptr = inptr;
 				memptr++;
 			}
@@ -134,8 +140,10 @@ uint8_t data;
 			}
 			;
 
-			jsonParser.End = memptr -1;/*Assign the end of array list*/
+			jsonParser.End = memptr - 1;/*Assign the end of array list*/
 			memptr = inptr;/*Reinitialize the memptr to the starting address data in arrayList So that data in that can be seen in next loop*/
+			inStartAddr = jsonParser.Start;
+			inEndAddr = jsonParser.End;
 			break;
 
 		case '\"':
@@ -213,10 +221,17 @@ uint8_t data;
 			jsonParser.parsed_type = JSON_PRIMITIVE;
 			jsonParser.Start = memptr;
 
-			while ((*memptr != ',') && (memptr< EndAddr))
+			while ((*memptr != ',') && (memptr < EndAddr) && (memptr<inEndAddr))
 				memptr++;
 
-			jsonParser.End = memptr - 1;
+			if (*memptr != ',') {
+				inptr = memptr;
+				while (inptr != jsonParser.Start)
+					inptr--;
+				jsonParser.End = inptr;
+				memptr++;
+			} else
+				jsonParser.End = memptr - 1;
 
 			memptr++;
 
