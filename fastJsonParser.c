@@ -4,15 +4,12 @@
  including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
  and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
  subject to the following conditions:
-
  This permission notice shall be included in all copies or substantial portions of the Software.
-
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
  NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
  * Author: Mrunal Ahirrao
  * Email: mrunalahirrao@yahoo.com
  */
@@ -221,13 +218,20 @@ fast_json_parser json_parse() {
 			jsonParser.parsed_type = JSON_PRIMITIVE;
 			jsonParser.Start = memptr;
 
-			while ((*memptr != ',') && (memptr < EndAddr) && (memptr<inEndAddr))
+			while ((*memptr != ',') && (memptr < EndAddr)
+					&& (memptr < inEndAddr))
 				memptr++;
 
 			if (*memptr != ',') {
 				inptr = memptr;
-				while (inptr != jsonParser.Start)
+				while (inptr != jsonParser.Start) {
 					inptr--;
+					if (*inptr == '1' || *inptr == '2' || *inptr == '3'
+							|| *inptr == '4' || *inptr == '5' || *inptr == '6'
+							|| *inptr == '7' || *inptr == '8' || *inptr == '9'
+							|| *inptr == '0')
+						break;
+				};
 				jsonParser.End = inptr;
 				memptr++;
 			} else
@@ -244,17 +248,22 @@ fast_json_parser json_parse() {
 		case ']': // increment the memptr as whenever this case comes the JSON string is about to end
 			memptr++;
 			jsonParser.parsed_type = JSON_UNDEFINED;
-			
+
+			break;
+
+		case ',':
+			memptr++;
+			jsonParser.parsed_type = JSON_UNDEFINED;
+
 			break;
 
 		default:
 			jsonParser.parsed_type = JSON_UNDEFINED;
 
 		};
-		
 
 	} else {
-		jsonParser.Start = memptr-1;
+		jsonParser.Start = memptr - 1;
 		jsonParser.End = memptr;
 		jsonParser.parsed_type = JSON_END;
 		return jsonParser;
